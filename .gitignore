@@ -1,0 +1,51 @@
+/_pycache_
+/.pytest_cache
+/.vscode
+/algorithex.egg-info
+/.idea
+/storage/*.key
+/storage/*.sqlite
+/storage/*.gz
+.DS_Store
+/.vagrant
+/storage/temp/*.pickle
+/storage/trades/*.json
+/storage/trading-view-pine-editor/*.txt
+/storage/temp/optimize/*.pickle
+/storage/orders/*.json
+/storage/logs/trades/*.json
+/storage/logs/collect.txt
+/storage/logs/optimize.txt
+/storage/logs/live-trade.txt
+/storage/logs/paper-trade.txt
+/storage/genetics/*.txt
+/storage/csv/*.csv
+/storage/json/*.json
+/storage/charts/*.png
+/storage/significance-test-charts/*.png
+/storage/backtest-charts/
+/storage/full-reports/*.html
+*.pyc
+/__pycache__
+/venv
+storage/logs/collect.txt
+__pycache__
+.vscode
+/.ipynb_checkpoints
+config.py
+live-config.py
+routes.py
+.env
+
+# Runtime artifacts — never commit these.
+# Ignore the directory contents but keep the placeholder files that make the
+# tree exist on a fresh clone.
+/storage/logs/*
+!/storage/logs/.gitkeep
+/storage/temp/*
+!/storage/temp/.gitkeep
+
+# Docker volume: this is a live PostgreSQL data directory (base/, global/, WAL).
+# It holds real candle/trade/session data and contains files over 100 MB, which
+# GitHub rejects outright. It is recreated by `docker compose up`.
+/docker/postgres-data/

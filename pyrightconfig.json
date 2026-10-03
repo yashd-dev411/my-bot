@@ -1,0 +1,16 @@
+{
+  "typeCheckingMode": "off",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "extraPaths": [
+    "/algorithex-docker"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "/home",
+      "extraPaths": [
+        "/algorithex-docker"
+      ]
+    }
+  ]
+}
