@@ -1,46 +1,90 @@
 services:
   ### Algorithex's Workspace ################################################
+  #
+  # Deploy notes
+  # ------------
+  #   docker compose up -d
+  #
+  # The app is gated on Postgres and Redis actually being ready, not merely
+  # started. Without that, a cold start races the database: the app boots first,
+  # fails to connect, and exits, which in a restart loop looks like a crash
+  # rather than a slow start.
+  #
+  # Override anything from the environment, e.g. a real password:
+  #   POSTGRES_PASSWORD=... docker compose up -d
+  # or put it in docker/.env, which compose reads automatically.
   algorithex:
-    image: algorithex:latest
+    image: ${ALGORITHEX_IMAGE:-algorithex:latest}
     build:
       context: ../../algorithex
       dockerfile: Dockerfile
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     tty: true
     env_file:
       - ../.env
     ports:
       - "9000:9000"
-      # MCP Server Port
+        # MCP Server Port
       - "9002:9002"
-      # Jupyter Port
+        # Jupyter Port
       - "8888:8888"
-      # LSP Port
+        # LSP Port
       - "9001:9001"
     volumes:
       - ../:/home
     container_name: algorithex
+    restart: unless-stopped
     command: bash -c "algorithex install-live --no-strict && algorithex run"
+    healthcheck:
+      # Also declared in the Dockerfile, so a bare `docker run` gets it too.
+      # Repeated here because compose overrides image-level healthchecks. The
+      # script prints one line on failure rather than a traceback, which matters
+      # most here: a cold start fails every probe for the first two minutes.
+      test: ["CMD", "python", "/algorithex-docker/docker_healthcheck.py"]
+      interval: 30s
+      timeout: 5s
+      # Generous: the first boot installs the workspace and is much slower than
+      # every later one. Starting too early reports a crash that is really
+      # just slowness.
+      start_period: 120s
+      retries: 3
 
   ### PostgreSQL ################################################
   postgres:
     image: postgres:14-alpine
     restart: always
     environment:
-      - POSTGRES_USER=algorithex_user
-      - POSTGRES_PASSWORD=password
-      - POSTGRES_DB=algorithex_db
+      - POSTGRES_USER=${POSTGRES_USERNAME:-algorithex_user}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - POSTGRES_DB=${POSTGRES_NAME:-algorithex_db}
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
     container_name: postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USERNAME:-algorithex_user} -d ${POSTGRES_NAME:-algorithex_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   ### Redis ################################################
   redis:
     image: redis:6-alpine
     container_name: redis
+    restart: always
+    # Persistence is off deliberately: Redis here is a cache, and losing it on
+    # restart costs a rebuild rather than any real data.
     command: redis-server --save "" --appendonly no
-    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+
 volumes:
   postgres-data:
