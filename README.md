@@ -134,17 +134,6 @@ defaults if a variable is unset.
 
 ---
 
-## What is not committed
-
-`.gitignore` keeps runtime artifacts out of history: `.env`, generated candles,
-logs, charts, backtest results, and `docker/postgres-data/`. That last one is a
-live PostgreSQL data directory holding files over 100 MB, which GitHub rejects
-outright — it is recreated by `docker compose up`.
-
-Your strategies and your configuration stay yours; the noise does not.
-
----
-
 ## Credits and License
 
 Algorithex is a fork of [Jesse](https://github.com/jesse-ai/jesse) by **Jesse
